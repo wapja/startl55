@@ -5,29 +5,42 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-
-class ThreadsTest extends TestCase
+class ReadThreadsTest extends TestCase
 {
+
+    protected $thread;
+
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->thread = factory('App\Thread')->create();
+    }
 
     use RefreshDatabase;
 
     /** test */
     public function testUserCanViewAllThreads()
     {
-        $thread = factory('App\Thread')->create();
-
-        $response = $this->get('/threads');
-
-        $response->assertSee($thread->title);
+        $this->get('/threads')
+            ->assertSee($this->thread->title);
     }
 
     /** test */
     public function testUserCanViewASingleThread()
     {
-        $thread = factory('App\Thread')->create();
-
-        $response = $this->get('/threads/' . $thread->id);
-
-        $response->assertSee($thread->title);
+        $this->get('/threads/' . $this->thread->id)
+            ->assertSee($this->thread->title);
     }
+
+    /** test */
+    public function testUserCanReadRepliesAssociatedWithAThread()
+    {
+        $reply = factory('App\Reply')
+            ->create(['thread_id' => $this->thread->id]);
+
+        $this->get('/threads/' . $this->thread->id)
+            ->assertSee($reply->body);
+    }
+
 }
